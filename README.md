@@ -125,11 +125,3 @@ searchInput.addEventListener("input", (event) => {
 
 Harga yang digunakan pada project ini hanya data contoh, bukan harga pasar kartu Pokémon sebenarnya.
 
-## Cara Menjalankan
-
-1. Buka folder project.
-2. Buka `index.html` menggunakan browser.
-3. Ketik nama Pokémon, tipe, atau rarity pada kolom pencarian.
-4. Hasil pencarian akan berubah secara otomatis.
-
-Contoh pencarian: `Pikachu`, `Fire`, `Rare`, atau `Psychic`.
