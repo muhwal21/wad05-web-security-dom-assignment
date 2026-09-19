@@ -1,0 +1,235 @@
+<!--
+  Technical Assignment - Web Application Development
+  Kelas: WAD05
+  Nama: MUH. AWALUDDIN
+  NIM: 25120300003
+-->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Card Marketplace - Live Search</title>
+  <style>
+    :root {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1f2937;
+      background: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0;
+    }
+
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 42px);
+    }
+
+    .header p {
+      margin: 0;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .search-panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #6b7280;
+      box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.12);
+    }
+
+    .result-info {
+      margin: 18px 0 12px;
+      font-weight: 700;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .pokemon-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .pokemon-card h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .pokemon-card p {
+      margin: 7px 0;
+      color: #4b5563;
+    }
+
+    .price {
+      margin-top: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .empty-message {
+      background: #ffffff;
+      border: 1px dashed #d1d5db;
+      border-radius: 14px;
+      padding: 22px;
+      color: #6b7280;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>Pokémon Card Marketplace</h1>
+      <p>
+        Cari kartu berdasarkan nama Pokémon, tipe, atau rarity. Harga pada contoh ini hanya digunakan sebagai data simulasi.
+      </p>
+    </header>
+
+    <section class="search-panel">
+      <label for="searchInput">Cari kartu Pokémon</label>
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="Contoh: Pikachu, Fire, Rare..."
+        autocomplete="off"
+      />
+      <p id="resultInfo" class="result-info"></p>
+      <div id="results" class="card-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    // Data lokal digunakan agar filtering benar-benar dilakukan pada sebuah array.
+    const pokemonCards = [
+      { name: "Pikachu", type: "Electric", rarity: "Rare", price: 120000 },
+      { name: "Charizard", type: "Fire", rarity: "Ultra Rare", price: 850000 },
+      { name: "Bulbasaur", type: "Grass", rarity: "Common", price: 75000 },
+      { name: "Squirtle", type: "Water", rarity: "Common", price: 80000 },
+      { name: "Gengar", type: "Ghost", rarity: "Rare", price: 250000 },
+      { name: "Eevee", type: "Normal", rarity: "Rare", price: 150000 },
+      { name: "Lucario", type: "Fighting", rarity: "Rare", price: 210000 },
+      { name: "Mewtwo", type: "Psychic", rarity: "Ultra Rare", price: 620000 }
+    ];
+
+    // Referensi elemen DOM yang dipakai selama pencarian dan re-render.
+    const searchInput = document.getElementById("searchInput");
+    const resultInfo = document.getElementById("resultInfo");
+    const resultsContainer = document.getElementById("results");
+
+    function formatPrice(price) {
+      return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0
+      }).format(price);
+    }
+
+    function clearResults() {
+      while (resultsContainer.firstChild) {
+        resultsContainer.removeChild(resultsContainer.firstChild);
+      }
+    }
+
+    // Membuat ulang hasil pencarian memakai createElement dan textContent.
+    function renderResults(items) {
+      clearResults();
+      resultInfo.textContent = `${items.length} kartu ditemukan`;
+
+      if (items.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.className = "empty-message";
+        emptyMessage.textContent = "Tidak ada kartu Pokémon yang sesuai dengan pencarian.";
+        resultsContainer.appendChild(emptyMessage);
+        return;
+      }
+
+      items.forEach((pokemon) => {
+        const card = document.createElement("article");
+        card.className = "pokemon-card";
+
+        const name = document.createElement("h2");
+        name.textContent = pokemon.name;
+
+        const type = document.createElement("p");
+        type.textContent = `Tipe: ${pokemon.type}`;
+
+        const rarity = document.createElement("p");
+        rarity.textContent = `Rarity: ${pokemon.rarity}`;
+
+        const price = document.createElement("p");
+        price.className = "price";
+        price.textContent = `Harga: ${formatPrice(pokemon.price)}`;
+
+        card.appendChild(name);
+        card.appendChild(type);
+        card.appendChild(rarity);
+        card.appendChild(price);
+        resultsContainer.appendChild(card);
+      });
+    }
+
+    // Event input berjalan setiap kali pengguna mengetik atau menghapus karakter.
+    searchInput.addEventListener("input", (event) => {
+      const keyword = event.target.value.toLowerCase().trim();
+
+      // filter() mengecek nama, tipe, dan rarity untuk setiap item pada array.
+      const filteredCards = pokemonCards.filter((pokemon) => {
+        return (
+          pokemon.name.toLowerCase().includes(keyword) ||
+          pokemon.type.toLowerCase().includes(keyword) ||
+          pokemon.rarity.toLowerCase().includes(keyword)
+        );
+      });
+
+      renderResults(filteredCards);
+    });
+
+    // Menampilkan seluruh data saat halaman pertama kali dibuka.
+    renderResults(pokemonCards);
+  </script>
+</body>
+</html>
